@@ -16,7 +16,7 @@
 - `POST /orders` — создать заказ (обращается к user-service)
   - Body JSON: `{ "user_id": 1, "item": "Book", "price": 10.5 }`
   - Response 201: заказ + поля `user_name`, `user_email`
-  - Заголовок `X-User-Service-Url` (опционально): переопределяет адрес user-service на время запроса (удобно для негативных тестов)
+  - Заголовок `X-User-Service-Url` (опционально): переопределяет адрес user-service на время запроса
 
 - `GET /orders/<id>` — получить заказ
   - Response 200 / 404
