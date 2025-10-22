@@ -1,0 +1,147 @@
+{
+  "info": {
+    "name": "Microservices Users+Orders",
+    "_postman_id": "e9c8d7e0-aaaa-bbbb-cccc-ddddeeefff11",
+    "description": "Коллекция для тестирования взаимодействия user-service и order-service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url_user}}/users",
+          "host": [
+            "{{base_url_user}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "const data = pm.response.json();",
+              "pm.environment.set('userId', data.id);",
+              "pm.test('userId saved', function () { pm.expect(pm.environment.get('userId')).to.exist; });",
+              "pm.test('Response time < 2000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"item\": \"Book\",\n  \"price\": 10.5\n}"
+        },
+        "url": {
+          "raw": "{{base_url_order}}/orders",
+          "host": [
+            "{{base_url_order}}"
+          ],
+          "path": [
+            "orders"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('Order has user fields', function () {",
+              "  const o = pm.response.json();",
+              "  pm.expect(o).to.have.property('user_name');",
+              "  pm.expect(o).to.have.property('user_email');",
+              "});",
+              "pm.test('Response time < 2000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Order — user-service DOWN",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-User-Service-Url",
+            "value": "http://127.0.0.1:5999"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": 1,\n  \"item\": \"Pen\",\n  \"price\": 2.0\n}"
+        },
+        "url": {
+          "raw": "{{base_url_order}}/orders",
+          "host": [
+            "{{base_url_order}}"
+          ],
+          "path": [
+            "orders"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 503 when user-service is down', function () { pm.response.to.have.status(503); });",
+              "pm.test('Response time < 2000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url_user",
+      "value": "http://127.0.0.1:5001"
+    },
+    {
+      "key": "base_url_order",
+      "value": "http://127.0.0.1:5002"
+    }
+  ]
+}
